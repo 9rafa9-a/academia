@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, MoreVertical, Timer, Weight, Info, StretchHorizontal, Save, Check, ArrowLeft, History, Edit, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { saveSessionAction, updateWorkoutAction } from '@/app/actions';
+import { saveSessionAction, updateWorkoutAction, deleteWorkoutAction } from '@/app/actions';
 
 export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
     const [exercises, setExercises] = useState(
@@ -118,7 +118,7 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
     }
 
     return (
-        <div className="min-h-screen pb-48 relative">
+        <div className="min-h-screen pb-96 relative">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-800">
                 <Link href={`/dashboard/${workout.userId}`} className="p-2 -ml-2 text-slate-400 hover:text-white">
@@ -340,19 +340,33 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
                 </div>
             </div>
 
-            <div className="fixed bottom-6 left-6 right-6">
+            {/* Footer Actions */}
+            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent z-50">
                 {isEditorMode ? (
-                    <button
-                        onClick={handleSaveEditor}
-                        disabled={isSaving}
-                        className={cn("w-full py-4 rounded-2xl font-bold text-white shadow-lg active:scale-95 transition-all text-lg flex items-center justify-center gap-2 bg-blue-600", isSaving && "opacity-70 cursor-not-allowed")}
-                    >
-                        {isSaving ? "Salvando Alterações..." : (
-                            <>
-                                <Save size={20} /> Salvar Edições
-                            </>
-                        )}
-                    </button>
+                    <div className="flex gap-4">
+                        <button
+                            onClick={async () => {
+                                if (confirm('Tem certeza que deseja excluir ESTE TREINO? Isso não pode ser desfeito.')) {
+                                    await deleteWorkoutAction(workout.id, workout.userId);
+                                }
+                            }}
+                            disabled={isSaving}
+                            className="flex-1 py-4 rounded-2xl font-bold text-red-500 bg-red-500/10 border border-red-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            <Trash2 size={20} /> Excluir
+                        </button>
+                        <button
+                            onClick={handleSaveEditor}
+                            disabled={isSaving}
+                            className={cn("flex-[2] py-4 rounded-2xl font-bold text-white shadow-lg shadow-blue-900/20 active:scale-95 transition-all text-lg flex items-center justify-center gap-2 bg-blue-600", isSaving && "opacity-70 cursor-not-allowed")}
+                        >
+                            {isSaving ? "Salvando..." : (
+                                <>
+                                    <Save size={20} /> Salvar Edições
+                                </>
+                            )}
+                        </button>
+                    </div>
                 ) : (
                     <button
                         onClick={handleFinish}

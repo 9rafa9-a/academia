@@ -1,8 +1,23 @@
 'use server';
 
-import { saveWorkoutSession, updateWorkout, createWorkout, deleteSession } from '@/lib/db';
+import { saveWorkoutSession, updateWorkout, createWorkout, deleteSession, deleteWorkout, resetHistory } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+
+// ... existing actions ...
+
+export async function deleteWorkoutAction(workoutId, userId) {
+    await deleteWorkout(workoutId);
+    revalidatePath(`/dashboard/${userId}`);
+    redirect(`/dashboard/${userId}`);
+}
+
+export async function resetHistoryAction(userId) {
+    await resetHistory(userId);
+    revalidatePath(`/dashboard/${userId}`);
+    revalidatePath(`/dashboard/${userId}/history`);
+    return { success: true };
+}
 
 export async function saveSessionAction(data) {
     await saveWorkoutSession(data);

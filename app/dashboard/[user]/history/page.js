@@ -1,10 +1,10 @@
 import { getHistory } from '@/lib/db';
 import Link from 'next/link';
-import { ArrowLeft, Trash2, Calendar, Clock, Trophy } from 'lucide-react';
-import { deleteSessionAction } from '@/app/actions';
+import { ArrowLeft, Trash2, Calendar, Clock } from 'lucide-react';
+import { deleteSessionAction, resetHistoryAction } from '@/app/actions';
 
 export default async function HistoryPage({ params }) {
-    const { user } = params;
+    const { user } = await params;
     const history = await getHistory(user);
 
     // Sort by date descending
@@ -56,6 +56,18 @@ export default async function HistoryPage({ params }) {
                             </form>
                         </div>
                     ))}
+
+                    <form action={async () => {
+                        'use server';
+                        await resetHistoryAction(user);
+                    }} className="mt-12 pt-8 border-t border-slate-800">
+                        <button
+                            type="submit"
+                            className="w-full py-3 text-red-500 border border-red-500/20 bg-red-500/10 rounded-xl hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Trash2 size={20} /> Resetar Todo o Progresso
+                        </button>
+                    </form>
                 </div>
             )}
         </div>
