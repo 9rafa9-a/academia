@@ -11,9 +11,17 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
     const cadence = exercise.cadence || DEFAULT_CADENCE;
     const totalRepTime = cadence.concentric + cadence.peakHold + cadence.eccentric + cadence.baseHold;
 
-    // Parse reps (handle "10 (cada)" or "8-10" formats)
+    // Parse reps (handle "10 (cada)", "8-10", "15 + 15" formats)
     const parseReps = (repsStr) => {
-        const match = String(repsStr).match(/\d+/);
+        const str = String(repsStr);
+        // Handle sum "15 + 15"
+        if (str.includes('+')) {
+            return str.split('+').reduce((acc, val) => {
+                const match = val.match(/\d+/);
+                return acc + (match ? parseInt(match[0]) : 0);
+            }, 0);
+        }
+        const match = str.match(/\d+/);
         return match ? parseInt(match[0]) : 10;
     };
     const targetReps = parseReps(exercise.reps);

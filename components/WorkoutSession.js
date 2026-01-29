@@ -413,15 +413,16 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
                     currentSet={cadenceSet}
                     totalSets={cadenceExercise.sets}
                     onComplete={(restTime) => {
-                        setRestDuration(restTime);
+                        if (restTime > 0) setRestDuration(restTime);
                         setCadenceExercise(null);
                     }}
                     onClose={() => {
                         // If more sets remain, increment
                         if (cadenceSet < cadenceExercise.sets) {
                             setCadenceSet(prev => prev + 1);
-                            // Start rest timer
-                            setRestDuration(cadenceExercise.cadence?.restTime || 60);
+                            // Start rest timer if time > 0
+                            const rTime = cadenceExercise.cadence?.restTime !== undefined ? cadenceExercise.cadence.restTime : 60;
+                            if (rTime > 0) setRestDuration(rTime);
                             setCadenceExercise(null);
                         } else {
                             // All sets done, mark exercise complete
