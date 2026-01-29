@@ -36,7 +36,10 @@ export async function deleteSessionAction(sessionId, userId) {
 }
 
 export async function updateWorkoutAction(workoutId, data, userId) {
-    await updateWorkout(workoutId, data);
+    const result = await updateWorkout(workoutId, data);
+    if (!result.success) {
+        throw new Error(result.error || "Falha ao atualizar treino no banco de dados.");
+    }
     revalidatePath(`/workout/${workoutId}`);
     if (userId) revalidatePath(`/dashboard/${userId}`);
     return { success: true };
