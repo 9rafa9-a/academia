@@ -171,7 +171,7 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
 
         if (progress >= 1) {
             // HAPTIC FEEDBACK ON PHASE CHANGE
-            if (navigator.vibrate) navigator.vibrate(50);
+            if (navigator.vibrate) navigator.vibrate(200);
 
             // Move to next phase
             const currentIndex = phases.findIndex(p => p.name === currentPhase);
@@ -182,7 +182,7 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
                 // Rep complete
                 if (currentRep < targetReps - 1) {
                     // Stronger haptic for rep complete
-                    if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                    if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
                     setCurrentRep(prev => prev + 1);
                     setCurrentPhase(phases[0].name);
                     phaseStartRef.current = null;
