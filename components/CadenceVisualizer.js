@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Play, Pause, RotateCcw } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { audioController } from '@/lib/audioController';
 import { cn } from '@/lib/utils';
 
 // Default cadence if none provided
@@ -33,6 +34,7 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
     const [phaseProgress, setPhaseProgress] = useState(0); // 0-1 within current phase
     const [totalTUT, setTotalTUT] = useState(0); // Time Under Tension accumulated
     const [dotPosition, setDotPosition] = useState({ x: 0, y: 100 }); // SVG coordinates
+    const [isMuted, setIsMuted] = useState(false);
 
     const animationRef = useRef(null);
     const startTimeRef = useRef(null);
@@ -122,7 +124,7 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
         return path;
     }, [phases, totalRepTime]);
 
-    // Animation loop
+    // Audio Logic
     const animate = useCallback((timestamp) => {
         if (!phaseStartRef.current) phaseStartRef.current = timestamp;
 
@@ -134,9 +136,43 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
 
         setPhaseProgress(progress);
         setDotPosition(calculateDotPosition(currentPhase, progress));
-        setTotalTUT(prev => prev + 0.016); // ~60fps increment
+        setTotalTUT(prev => prev + 0.016);
+
+        // --- AUDIO MODULATION ---
+        if (isRunning && !audioController.isMuted) {
+            let freq = 0;
+            let vol = 0.1;
+
+            if (currentPhase === 'concentric') {
+                // Rising: 200Hz -> 600Hz
+                freq = 200 + (progress * 400);
+            } else if (currentPhase === 'eccentric') {
+                // Falling: 300Hz -> 100Hz (Calm descent)
+                freq = 300 - (progress * 200);
+            } else if (currentPhase === 'peak') {
+                // High Tension Pulse: 600Hz
+                freq = 600;
+                vol = 0.1 + (Math.sin(elapsed * 15) * 0.02); // Fast shimmer
+            } else if (currentPhase === 'base') {
+                if (currentPhaseObj.label === 'ALONGUE!') {
+                    // Deep tension: 80Hz + wobble
+                    freq = 80 + (Math.sin(elapsed * 5) * 10);
+                    vol = 0.15;
+                } else {
+                    // Rest: 100Hz quiet
+                    freq = 100;
+                    vol = 0.05;
+                }
+            }
+            audioController.updateFrequency(freq);
+            audioController.modulateVolume(vol);
+        }
+        // ------------------------
 
         if (progress >= 1) {
+            // HAPTIC FEEDBACK ON PHASE CHANGE
+            if (navigator.vibrate) navigator.vibrate(50);
+
             // Move to next phase
             const currentIndex = phases.findIndex(p => p.name === currentPhase);
             if (currentIndex < phases.length - 1) {
@@ -145,11 +181,14 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
             } else {
                 // Rep complete
                 if (currentRep < targetReps - 1) {
+                    // Stronger haptic for rep complete
+                    if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
                     setCurrentRep(prev => prev + 1);
                     setCurrentPhase(phases[0].name);
                     phaseStartRef.current = null;
                 } else {
                     // Set complete
+                    audioController.stopContinuousTone(); // Stop sound
                     setIsRunning(false);
                     setCurrentPhase('complete');
                     onComplete && onComplete(cadence.restTime);
@@ -173,6 +212,8 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
     }, [isRunning, currentPhase, animate]);
 
     const handleStart = () => {
+        audioController.init();
+        audioController.startContinuousTone();
         setIsRunning(true);
         setCurrentPhase(phases[0].name);
         setCurrentRep(0);
@@ -181,10 +222,15 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
     };
 
     const handlePause = () => {
-        setIsRunning(prev => !prev);
+        setIsRunning(prev => {
+            if (prev) audioController.stopContinuousTone();
+            else audioController.startContinuousTone();
+            return !prev;
+        });
     };
 
     const handleReset = () => {
+        audioController.stopContinuousTone();
         setIsRunning(false);
         setCurrentPhase('ready');
         setCurrentRep(0);
@@ -193,6 +239,16 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
         setDotPosition({ x: 20, y: 80 });
         phaseStartRef.current = null;
     };
+
+    const handleToggleMute = () => {
+        const newState = audioController.toggleMute();
+        setIsMuted(newState);
+    };
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => audioController.stopContinuousTone();
+    }, []);
 
     const phaseInfo = getCurrentPhaseInfo();
     const wavePath = generateWavePath();
@@ -205,6 +261,9 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
                     <h2 className="text-lg font-bold text-white">{exercise.name}</h2>
                     <p className="text-sm text-slate-400">Série {currentSet} de {totalSets}</p>
                 </div>
+                <button onClick={handleToggleMute} className="p-2 text-slate-400 hover:text-white mr-2">
+                    {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                </button>
                 <button onClick={onClose} className="p-2 text-slate-400 hover:text-white">
                     <X size={24} />
                 </button>
