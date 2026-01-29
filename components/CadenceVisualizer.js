@@ -41,7 +41,12 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
     // Phase durations in order
     const phases = [
         { name: 'concentric', duration: cadence.concentric, label: 'SUBINDO', color: 'text-red-500' },
-        { name: 'peak', duration: cadence.peakHold, label: 'SEGURE!', color: 'text-emerald-400' },
+        {
+            name: 'peak',
+            duration: cadence.peakHold,
+            label: exercise.name.includes('Remada') ? 'ESMAGUE!' : 'SEGURE!',
+            color: 'text-emerald-400'
+        },
         { name: 'eccentric', duration: cadence.eccentric, label: 'DESCENDO', color: 'text-emerald-500' },
         {
             name: 'base',
