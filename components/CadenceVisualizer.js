@@ -51,8 +51,8 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
         {
             name: 'base',
             duration: cadence.baseHold,
-            label: cadence.baseHold >= 2 ? 'ALONGUE!' : 'BASE',
-            color: cadence.baseHold >= 2 ? 'text-amber-400' : 'text-blue-400'
+            label: (cadence.baseHold >= 2 || (exercise.name.includes('Supino') && cadence.baseHold >= 1)) ? 'ALONGUE!' : 'BASE',
+            color: (cadence.baseHold >= 2 || (exercise.name.includes('Supino') && cadence.baseHold >= 1)) ? 'text-amber-400' : 'text-blue-400'
         },
     ].filter(p => p.duration > 0);
 
