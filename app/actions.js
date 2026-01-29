@@ -35,9 +35,10 @@ export async function deleteSessionAction(sessionId, userId) {
     return { success: true };
 }
 
-export async function updateWorkoutAction(workoutId, data) {
+export async function updateWorkoutAction(workoutId, data, userId) {
     await updateWorkout(workoutId, data);
     revalidatePath(`/workout/${workoutId}`);
+    if (userId) revalidatePath(`/dashboard/${userId}`);
     return { success: true };
 }
 

@@ -93,7 +93,7 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
         };
 
         try {
-            await updateWorkoutAction(workout.id, newWorkoutData);
+            await updateWorkoutAction(workout.id, newWorkoutData, workout.userId);
             setIsEditorMode(false);
         } catch (e) {
             console.error(e);
