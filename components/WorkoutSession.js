@@ -24,7 +24,8 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
                 ...ex,
                 completed: prev[i]?.completed || false,
                 weightUsed: prev[i]?.weightUsed || '',
-                imageUrl: ex.imageUrl || '' // Always take latest URL from DB
+                // Fix: Fallback to local image URL if server's is empty (prevents flashing on save)
+                imageUrl: ex.imageUrl || prev[i]?.imageUrl || ''
             }));
         });
     }, [workout]);
@@ -335,7 +336,7 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
                     )}
 
                     {/* SPACER: Allow scrolling past the fixed footer */}
-                    <div className="h-48"></div>
+                    <div className="h-64"></div>
 
                 </div>
             </div>
