@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, MoreVertical, Timer, Weight, Info, StretchHorizontal, Save, Check, ArrowLeft, History, Edit, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
+import { ChevronLeft, MoreVertical, Timer, Weight, Info, StretchHorizontal, Save, Check, ArrowLeft, History, Edit, Image as ImageIcon, Trash2, Plus, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { saveSessionAction, updateWorkoutAction, deleteWorkoutAction } from '@/app/actions';
+import CadenceVisualizer from './CadenceVisualizer';
+import RestTimer from './RestTimer';
 
 export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
     const [exercises, setExercises] = useState(
@@ -33,6 +35,11 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
     const [isEditorMode, setIsEditorMode] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
+
+    // Cadence Visualizer state
+    const [cadenceExercise, setCadenceExercise] = useState(null);
+    const [cadenceSet, setCadenceSet] = useState(1);
+    const [restDuration, setRestDuration] = useState(null);
 
     const isRafael = workout.userId === 'rafael';
     const themeColor = isRafael ? 'text-blue-400' : 'text-emerald-400';
@@ -322,6 +329,19 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
                                                 <span>Última sessão: <strong>{lastWeight}</strong></span>
                                             </div>
                                         )}
+
+                                        {/* Cadence Start Button (only if exercise has cadence data) */}
+                                        {exercise.cadence && !isEditorMode && !exercise.completed && (
+                                            <button
+                                                onClick={() => {
+                                                    setCadenceExercise(exercise);
+                                                    setCadenceSet(1);
+                                                }}
+                                                className="mt-3 w-full py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-emerald-500/20 active:scale-95 transition-all"
+                                            >
+                                                <Play size={16} /> Iniciar Série com Cadência
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -385,6 +405,50 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
                     </button>
                 )}
             </div>
+
+            {/* Cadence Visualizer Modal */}
+            {cadenceExercise && (
+                <CadenceVisualizer
+                    exercise={cadenceExercise}
+                    currentSet={cadenceSet}
+                    totalSets={cadenceExercise.sets}
+                    onComplete={(restTime) => {
+                        setRestDuration(restTime);
+                        setCadenceExercise(null);
+                    }}
+                    onClose={() => {
+                        // If more sets remain, increment
+                        if (cadenceSet < cadenceExercise.sets) {
+                            setCadenceSet(prev => prev + 1);
+                            // Start rest timer
+                            setRestDuration(cadenceExercise.cadence?.restTime || 60);
+                            setCadenceExercise(null);
+                        } else {
+                            // All sets done, mark exercise complete
+                            const idx = exercises.findIndex(e => e.name === cadenceExercise.name);
+                            if (idx !== -1) {
+                                const newExercises = [...exercises];
+                                newExercises[idx].completed = true;
+                                setExercises(newExercises);
+                            }
+                            setCadenceExercise(null);
+                        }
+                    }}
+                />
+            )}
+
+            {/* Rest Timer Modal */}
+            {restDuration && (
+                <RestTimer
+                    duration={restDuration}
+                    onComplete={() => {
+                        setRestDuration(null);
+                        // Reopen cadence for next set if applicable
+                        // (The cadenceExercise was already cleared, so user taps again)
+                    }}
+                    onSkip={() => setRestDuration(null)}
+                />
+            )}
         </div>
     );
 }
