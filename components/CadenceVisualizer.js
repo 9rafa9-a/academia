@@ -39,6 +39,7 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
     const animationRef = useRef(null);
     const startTimeRef = useRef(null);
     const phaseStartRef = useRef(null);
+    const lastHapticRef = useRef(0);
 
     // Phase durations in order (Memoized to prevent loop thrashing)
     const phases = useMemo(() => [
