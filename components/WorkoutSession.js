@@ -107,7 +107,7 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
     return (
         <div className="min-h-screen pb-48 relative">
             {/* Header */}
-            <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-800">
+            <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-800">
                 <Link href={`/dashboard/${workout.userId}`} className="p-2 -ml-2 text-slate-400 hover:text-white">
                     <ArrowLeft size={24} />
                 </Link>
