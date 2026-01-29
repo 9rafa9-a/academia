@@ -1,8 +1,15 @@
 'use server';
 
-import { saveWorkoutSession, updateWorkout, createWorkout, deleteSession, deleteWorkout, resetHistory } from '@/lib/db';
+import { saveWorkoutSession, updateWorkout, createWorkout, deleteSession, deleteWorkout, resetHistory, seedWorkouts } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+
+// ... existing actions ...
+
+export async function restoreDefaultsAction(userId) {
+    await seedWorkouts(userId);
+    revalidatePath(`/dashboard/${userId}`);
+}
 
 // ... existing actions ...
 

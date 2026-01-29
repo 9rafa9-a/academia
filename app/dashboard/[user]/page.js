@@ -100,6 +100,20 @@ export default async function Dashboard({ params }) {
                 </div>
             </div>
 
+            {workouts.length === 0 && (
+                <form action={async () => {
+                    'use server';
+                    const { restoreDefaultsAction } = await import('@/app/actions');
+                    await restoreDefaultsAction(user);
+                }} className="mb-8 p-6 bg-slate-900/50 rounded-2xl border border-dashed border-slate-800 text-center">
+                    <h3 className="text-slate-200 font-semibold mb-2">Sua lista está vazia</h3>
+                    <p className="text-slate-500 text-sm mb-4">Deseja restaurar os treinos originais?</p>
+                    <button type="submit" className="bg-slate-800 text-white px-6 py-3 rounded-xl hover:bg-slate-700 transition">
+                        Restaurar Treinos Padrão
+                    </button>
+                </form>
+            )}
+
             <NewWorkoutButton userId={user} />
         </div>
     );
