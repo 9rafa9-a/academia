@@ -24,7 +24,9 @@ export default async function Dashboard({ params }) {
                     <ChevronLeft size={24} />
                 </Link>
                 <h1 className="text-lg font-medium text-slate-200 capitalise">Olá, <span className={cn("font-bold capitalize", themeColor)}>{user}</span></h1>
-                <div className="w-8" />
+                <Link href={`/dashboard/${user}/history`} className="text-slate-400 hover:text-white" title="Histórico">
+                    <History size={24} />
+                </Link>
             </header>
 
             <div className="space-y-8">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, MoreVertical, Timer, Weight, Info, StretchHorizontal, Save, Check, ArrowLeft, History, Edit, Image as ImageIcon, Trash2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,19 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
             imageUrl: ex.imageUrl || ''
         }))
     );
+
+    // Sync only when entering/exiting editor or initial load if data changed
+    useEffect(() => {
+        setExercises(prev => {
+            // Merge existing local state (like completed checkboxes) with new definition
+            return workout.exercises.map((ex, i) => ({
+                ...ex,
+                completed: prev[i]?.completed || false,
+                weightUsed: prev[i]?.weightUsed || '',
+                imageUrl: ex.imageUrl || '' // Always take latest URL from DB
+            }));
+        });
+    }, [workout]);
 
     const [isEditorMode, setIsEditorMode] = useState(false);
     const [isSaving, setIsSaving] = useState(false);

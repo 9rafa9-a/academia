@@ -1,12 +1,22 @@
 'use server';
 
-import { saveWorkoutSession, updateWorkout, createWorkout } from '@/lib/db';
+import { saveWorkoutSession, updateWorkout, createWorkout, deleteSession } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function saveSessionAction(data) {
     await saveWorkoutSession(data);
     revalidatePath(`/dashboard/${data.userId}`);
+    revalidatePath(`/dashboard/${data.userId}/history`); // Revalidate history page too
+    return { success: true };
+}
+
+// ... existing actions ...
+
+export async function deleteSessionAction(sessionId, userId) {
+    await deleteSession(sessionId);
+    revalidatePath(`/dashboard/${userId}`);
+    revalidatePath(`/dashboard/${userId}/history`);
     return { success: true };
 }
 
