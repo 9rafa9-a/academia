@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { X, Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { audioController } from '@/lib/audioController';
 import { cn } from '@/lib/utils';
