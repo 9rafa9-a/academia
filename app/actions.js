@@ -1,8 +1,16 @@
 'use server';
 
-import { saveWorkoutSession, updateWorkout, createWorkout, deleteSession, deleteWorkout, resetHistory, seedWorkouts } from '@/lib/db';
+import { saveWorkoutSession, updateWorkout, createWorkout, deleteSession, deleteWorkout, resetHistory, seedWorkouts, cleanupDuplicates } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+
+// ... existing actions ...
+
+export async function cleanupDuplicatesAction(userId) {
+    const result = await cleanupDuplicates(userId);
+    revalidatePath(`/dashboard/${userId}`);
+    return result;
+}
 
 // ... existing actions ...
 

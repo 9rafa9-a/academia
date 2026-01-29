@@ -66,6 +66,18 @@ export default async function Dashboard({ params }) {
                         <h2 className="text-2xl font-bold text-white">Seus Treinos</h2>
                     </div>
                     <p className="text-slate-400 text-sm">Selecione o treino de hoje</p>
+                    {/* Detect duplicates by checking for repeated names */}
+                    {workouts.length !== new Set(workouts.map(w => w.name)).size && (
+                        <form action={async () => {
+                            'use server';
+                            const { cleanupDuplicatesAction } = await import('@/app/actions');
+                            await cleanupDuplicatesAction(user);
+                        }} className="mt-2">
+                            <button type="submit" className="text-xs text-amber-500 underline hover:text-amber-400">
+                                ⚠️ Detectamos duplicados. Clique para limpar.
+                            </button>
+                        </form>
+                    )}
                 </div>
 
                 <div className="grid gap-4">
