@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getWorkouts, DAILY_PROTOCOL, getHistory } from '@/lib/db';
-import { ChevronLeft, Dumbbell, Calendar, ChevronRight, Activity, Flame } from 'lucide-react';
+import { ChevronLeft, Dumbbell, Calendar, ChevronRight, Activity, Flame, History as HistoryIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReportButton from '@/components/ReportButton';
 import AttendanceCard from '@/components/AttendanceCard';
@@ -25,7 +25,7 @@ export default async function Dashboard({ params }) {
                 </Link>
                 <h1 className="text-lg font-medium text-slate-200 capitalise">Olá, <span className={cn("font-bold capitalize", themeColor)}>{user}</span></h1>
                 <Link href={`/dashboard/${user}/history`} className="text-slate-400 hover:text-white" title="Histórico">
-                    <History size={24} />
+                    <HistoryIcon size={24} />
                 </Link>
             </header>
 
