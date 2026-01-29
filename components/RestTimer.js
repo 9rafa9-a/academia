@@ -86,6 +86,8 @@ export default function RestTimer({ duration = 60, onComplete, onSkip }) {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
 
+    const isUrgent = duration <= 45;
+
     return (
         <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center">
             {/* Circular Progress */}
@@ -106,7 +108,7 @@ export default function RestTimer({ duration = 60, onComplete, onSkip }) {
                         cy="50"
                         r="45"
                         fill="none"
-                        stroke={isComplete ? "#22c55e" : "#3b82f6"}
+                        stroke={isComplete ? "#22c55e" : (isUrgent ? "#ef4444" : "#3b82f6")}
                         strokeWidth="8"
                         strokeLinecap="round"
                         strokeDasharray={`${2 * Math.PI * 45}`}
@@ -119,7 +121,7 @@ export default function RestTimer({ duration = 60, onComplete, onSkip }) {
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <div className={cn(
                         "text-6xl font-mono font-bold tabular-nums",
-                        isComplete ? "text-emerald-400" : "text-white"
+                        isComplete ? "text-emerald-400" : (isUrgent ? "text-red-500 animate-pulse" : "text-white")
                     )}>
                         {minutes}:{seconds.toString().padStart(2, '0')}
                     </div>
@@ -133,10 +135,10 @@ export default function RestTimer({ duration = 60, onComplete, onSkip }) {
 
             {/* Label */}
             <h2 className="text-2xl font-bold text-slate-200 mb-2">
-                {isComplete ? "Hora de Treinar!" : "Descanse"}
+                {isComplete ? "Hora de Treinar!" : (isUrgent ? "Descanso Curto!" : "Descanse")}
             </h2>
             <p className="text-slate-500 mb-8">
-                {isComplete ? "Próxima série esperando..." : "Recupere o fôlego"}
+                {isComplete ? "Próxima série esperando..." : (isUrgent ? "Mantenha o pump!" : "Recupere o fôlego")}
             </p>
 
             {/* Actions */}

@@ -35,7 +35,12 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
         { name: 'concentric', duration: cadence.concentric, label: 'SUBINDO', color: 'text-red-500' },
         { name: 'peak', duration: cadence.peakHold, label: 'SEGURE!', color: 'text-emerald-400' },
         { name: 'eccentric', duration: cadence.eccentric, label: 'DESCENDO', color: 'text-emerald-500' },
-        { name: 'base', duration: cadence.baseHold, label: 'BASE', color: 'text-blue-400' },
+        {
+            name: 'base',
+            duration: cadence.baseHold,
+            label: cadence.baseHold >= 2 ? 'ALONGUE!' : 'BASE',
+            color: cadence.baseHold >= 2 ? 'text-amber-400' : 'text-blue-400'
+        },
     ].filter(p => p.duration > 0);
 
     const getCurrentPhaseInfo = () => phases.find(p => p.name === currentPhase) || { label: 'PRONTO', color: 'text-slate-400' };
