@@ -321,6 +321,9 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
                         </button>
                     )}
 
+                    {/* SPACER: Allow scrolling past the fixed footer */}
+                    <div className="h-48"></div>
+
                 </div>
             </div>
 
