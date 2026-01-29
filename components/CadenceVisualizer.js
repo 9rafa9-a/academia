@@ -40,8 +40,8 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
     const startTimeRef = useRef(null);
     const phaseStartRef = useRef(null);
 
-    // Phase durations in order
-    const phases = [
+    // Phase durations in order (Memoized to prevent loop thrashing)
+    const phases = useMemo(() => [
         { name: 'concentric', duration: cadence.concentric, label: 'SUBINDO', color: 'text-red-500' },
         {
             name: 'peak',
@@ -56,7 +56,7 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
             label: (cadence.baseHold >= 2 || (exercise.name.includes('Supino') && cadence.baseHold >= 1)) ? 'ALONGUE!' : 'BASE',
             color: (cadence.baseHold >= 2 || (exercise.name.includes('Supino') && cadence.baseHold >= 1)) ? 'text-amber-400' : 'text-blue-400'
         },
-    ].filter(p => p.duration > 0);
+    ].filter(p => p.duration > 0), [cadence, exercise.name]);
 
     const getCurrentPhaseInfo = () => phases.find(p => p.name === currentPhase) || { label: 'PRONTO', color: 'text-slate-400' };
 
