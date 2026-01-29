@@ -169,9 +169,21 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
         }
         // ------------------------
 
+        // --- CONTINUOUS HAPTICS (Tactile Tension) ---
+        if (isRunning && (currentPhase === 'concentric' || currentPhase === 'peak')) {
+            const now = Date.now();
+            if (now - lastHapticRef.current > 150) {
+                if (navigator.vibrate) navigator.vibrate(200);
+                lastHapticRef.current = now;
+            }
+        }
+        // ------------------------
+
         if (progress >= 1) {
-            // HAPTIC FEEDBACK ON PHASE CHANGE
-            if (navigator.vibrate) navigator.vibrate(200);
+            // HAPTIC FEEDBACK ON PHASE CHANGE (Only for low tension phases to mark transition)
+            if (currentPhase === 'eccentric' || currentPhase === 'base') {
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
 
             // Move to next phase
             const currentIndex = phases.findIndex(p => p.name === currentPhase);
@@ -181,14 +193,15 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
             } else {
                 // Rep complete
                 if (currentRep < targetReps - 1) {
-                    // Stronger haptic for rep complete
-                    if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+                    // Distinct rep reset haptic
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                     setCurrentRep(prev => prev + 1);
                     setCurrentPhase(phases[0].name);
                     phaseStartRef.current = null;
                 } else {
                     // Set complete
                     audioController.stopContinuousTone(); // Stop sound
+                    if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 500]); // Victory rumble
                     setIsRunning(false);
                     setCurrentPhase('complete');
                     onComplete && onComplete(cadence.restTime);
