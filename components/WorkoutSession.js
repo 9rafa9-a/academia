@@ -80,8 +80,9 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
 
     const handleSaveEditor = async () => {
         setIsSaving(true);
-        // Prepare data directly from `exercises` state as the new definition
+        // Prepare data: Merge existing workout details with new exercises list
         const newWorkoutData = {
+            ...workout, // Include name, description, color, userId, etc.
             exercises: exercises.map(e => ({
                 name: e.name,
                 sets: e.sets,
@@ -91,6 +92,8 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
                 imageUrl: e.imageUrl || ''
             }))
         };
+        // Clean up internal ID from data payload if present
+        delete newWorkoutData.id;
 
         try {
             await updateWorkoutAction(workout.id, newWorkoutData, workout.userId);
