@@ -41,6 +41,9 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
     const [cadenceSet, setCadenceSet] = useState(1);
     const [restDuration, setRestDuration] = useState(null);
 
+    // Session TUT tracking for gamification
+    const [sessionTUT, setSessionTUT] = useState({ total: 0, byExercise: {} });
+
     const isRafael = workout.userId === 'rafael';
     const themeColor = isRafael ? 'text-blue-400' : 'text-emerald-400';
     const accentColor = isRafael ? 'bg-blue-500' : 'bg-emerald-500';
@@ -114,14 +117,59 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
     };
 
     if (isFinished) {
+        // Calculate classification based on TUT
+        const expectedTUT = exercises.reduce((acc, ex) => {
+            const cadence = ex.cadence || { concentric: 1, peakHold: 0.5, eccentric: 2, baseHold: 0.5 };
+            const repTime = cadence.concentric + cadence.peakHold + cadence.eccentric + cadence.baseHold;
+            const reps = parseInt(String(ex.reps).match(/\d+/)?.[0] || '10');
+            return acc + (repTime * reps * ex.sets);
+        }, 0);
+        const tutRatio = expectedTUT > 0 ? sessionTUT.total / expectedTUT : 0;
+
+        let badge = { emoji: '⚡', name: 'Speedy', desc: 'Treino rápido - tente manter a cadência' };
+        if (tutRatio >= 0.95) badge = { emoji: '🎯', name: 'Sniper', desc: 'Cadência perfeita!' };
+        else if (tutRatio >= 0.80) badge = { emoji: '🛡️', name: 'Tank', desc: 'Execução sólida' };
+
+        const formatTime = (seconds) => {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        };
+
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6">
-                <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 mb-4">
+                <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 mb-2">
                     <Check size={40} />
                 </div>
                 <h1 className="text-3xl font-bold text-white">Treino Concluído!</h1>
-                <p className="text-slate-400">Bom trabalho. Os dados foram salvos.</p>
-                <Link href={`/dashboard/${workout.userId}`} className="bg-slate-800 text-white px-8 py-3 rounded-xl font-medium">
+
+                {/* TUT Score Badge */}
+                {sessionTUT.total > 0 && (
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-sm space-y-4">
+                        <div className="text-6xl">{badge.emoji}</div>
+                        <div className="text-xl font-bold text-white">{badge.name}</div>
+                        <p className="text-slate-400 text-sm">{badge.desc}</p>
+
+                        <div className="border-t border-slate-800 pt-4 mt-4">
+                            <div className="text-sm text-slate-500 mb-1">Tempo Sob Tensão</div>
+                            <div className="text-3xl font-bold text-emerald-400">{formatTime(sessionTUT.total)}</div>
+                        </div>
+
+                        {/* Per-exercise breakdown */}
+                        {Object.keys(sessionTUT.byExercise).length > 0 && (
+                            <div className="space-y-2 text-left">
+                                {Object.entries(sessionTUT.byExercise).map(([name, tut]) => (
+                                    <div key={name} className="flex justify-between text-sm">
+                                        <span className="text-slate-400 truncate max-w-[180px]">{name}</span>
+                                        <span className="text-slate-300 font-mono">{formatTime(tut)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <Link href={`/dashboard/${workout.userId}`} className="bg-slate-800 text-white px-8 py-3 rounded-xl font-medium mt-4">
                     Voltar ao Dashboard
                 </Link>
             </div>
@@ -412,8 +460,18 @@ export default function WorkoutSession({ workout, warmup, lastWeights = {} }) {
                     exercise={cadenceExercise}
                     currentSet={cadenceSet}
                     totalSets={cadenceExercise.sets}
-                    onComplete={(restTime) => {
-                        if (restTime > 0) setRestDuration(restTime);
+                    onComplete={(data) => {
+                        // Accumulate TUT from this set
+                        if (data.tut) {
+                            setSessionTUT(prev => ({
+                                total: prev.total + data.tut,
+                                byExercise: {
+                                    ...prev.byExercise,
+                                    [data.exerciseName]: (prev.byExercise[data.exerciseName] || 0) + data.tut
+                                }
+                            }));
+                        }
+                        if (data.restTime > 0) setRestDuration(data.restTime);
                         setCadenceExercise(null);
                     }}
                     onClose={() => {

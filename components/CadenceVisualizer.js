@@ -59,6 +59,48 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
         },
     ].filter(p => p.duration > 0), [cadence, exercise.name]);
 
+    // Theme System: Zen (blue/calm) vs Rage (red/intense)
+    const theme = useMemo(() => {
+        const name = exercise.name.toLowerCase();
+        const isZen = cadence.baseHold >= 2 || name.includes('stiff') || name.includes('alongamento') || name.includes('panturrilha');
+        const isRage = (cadence.concentric <= 1.0) && (name.includes('agachamento') || name.includes('supino') || name.includes('leg press') || name.includes('paralelas') || name.includes('desenvolvimento'));
+
+        if (isZen) {
+            return {
+                name: 'zen',
+                primary: '#38bdf8',      // Sky blue
+                secondary: '#06b6d4',    // Cyan
+                accent: '#0ea5e9',       // Blue
+                glow: 'rgba(56, 189, 248, 0.3)',
+                gradient: ['#06b6d4', '#38bdf8', '#0ea5e9', '#38bdf8'],
+                dotClass: 'fill-sky-400',
+                bgClass: 'bg-sky-500/10',
+            };
+        } else if (isRage) {
+            return {
+                name: 'rage',
+                primary: '#ef4444',      // Red
+                secondary: '#f97316',    // Orange
+                accent: '#dc2626',       // Dark red
+                glow: 'rgba(239, 68, 68, 0.4)',
+                gradient: ['#ef4444', '#f97316', '#ef4444', '#dc2626'],
+                dotClass: 'fill-red-500',
+                bgClass: 'bg-red-500/10',
+            };
+        }
+        // Default balanced theme
+        return {
+            name: 'balanced',
+            primary: '#22c55e',      // Green
+            secondary: '#ef4444',    // Red (for concentric)
+            accent: '#3b82f6',       // Blue
+            glow: 'rgba(34, 197, 94, 0.2)',
+            gradient: ['#ef4444', '#22c55e', '#22c55e', '#3b82f6'],
+            dotClass: currentPhase === 'concentric' ? 'fill-red-500' : currentPhase === 'eccentric' || currentPhase === 'peak' ? 'fill-emerald-500' : 'fill-blue-500',
+            bgClass: '',
+        };
+    }, [cadence, exercise.name, currentPhase]);
+
     const getCurrentPhaseInfo = () => phases.find(p => p.name === currentPhase) || { label: 'PRONTO', color: 'text-slate-400' };
 
     // Calculate dot position based on phase and progress
@@ -205,7 +247,7 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
                     if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 500]); // Victory rumble
                     setIsRunning(false);
                     setCurrentPhase('complete');
-                    onComplete && onComplete(cadence.restTime);
+                    onComplete && onComplete({ restTime: cadence.restTime, tut: totalTUT, exerciseName: exercise.name });
                     return;
                 }
             }
@@ -286,7 +328,7 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
             {/* Main Visualizer */}
             <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-8">
                 {/* ECG Wave */}
-                <div className="w-full max-w-sm bg-slate-900 rounded-2xl p-4 border border-slate-800">
+                <div className={cn("w-full max-w-sm rounded-2xl p-4 border border-slate-800 transition-colors duration-500", theme.bgClass || "bg-slate-900")}>
                     <svg viewBox="0 0 280 100" className="w-full h-32">
                         {/* Grid lines */}
                         <defs>
@@ -296,7 +338,7 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
                         </defs>
                         <rect width="280" height="100" fill="url(#grid)" />
 
-                        {/* Wave path */}
+                        {/* Wave path with theme gradient */}
                         <path
                             d={wavePath}
                             fill="none"
@@ -305,27 +347,23 @@ export default function CadenceVisualizer({ exercise, currentSet, totalSets, onC
                             strokeLinecap="round"
                         />
 
-                        {/* Gradient for wave */}
+                        {/* Dynamic gradient for wave based on theme */}
                         <defs>
                             <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#ef4444" />
-                                <stop offset="30%" stopColor="#22c55e" />
-                                <stop offset="70%" stopColor="#22c55e" />
-                                <stop offset="100%" stopColor="#3b82f6" />
+                                <stop offset="0%" stopColor={theme.gradient[0]} />
+                                <stop offset="30%" stopColor={theme.gradient[1]} />
+                                <stop offset="70%" stopColor={theme.gradient[2]} />
+                                <stop offset="100%" stopColor={theme.gradient[3]} />
                             </linearGradient>
                         </defs>
 
-                        {/* Animated dot */}
+                        {/* Animated dot with theme color */}
                         <circle
                             cx={dotPosition.x}
                             cy={dotPosition.y}
                             r="8"
-                            className={cn(
-                                "transition-colors duration-200",
-                                currentPhase === 'concentric' ? "fill-red-500" :
-                                    currentPhase === 'eccentric' || currentPhase === 'peak' ? "fill-emerald-500" :
-                                        "fill-blue-500"
-                            )}
+                            className={cn("transition-colors duration-200", theme.dotClass)}
+                            style={{ filter: theme.name !== 'balanced' ? `drop-shadow(0 0 8px ${theme.glow})` : 'none' }}
                         />
                         <circle
                             cx={dotPosition.x}
